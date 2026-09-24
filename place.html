@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Место · Путеводитель по Калуге</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Lora:wght@400;500;600&family=Playfair+Display:wght@700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body data-theme="cover">
+  <div class="place-page">
+    <div class="place-hero" id="place-hero">
+      <div class="place-hero-topbar">
+        <a class="btn" id="back-btn" href="index.html">← Назад</a>
+      </div>
+      <img id="place-photo" src="" alt="" style="display:none">
+    </div>
+    <main class="place-main fade">
+      <div class="card-tag" id="place-section"></div>
+      <h1 id="place-name"></h1>
+      <p id="place-text-1"></p>
+      <p id="place-text-2"></p>
+      <dl class="facts" id="place-facts">
+        <div><dt>Адрес</dt><dd id="place-address"></dd></div>
+        <div><dt>Время работы</dt><dd id="place-hours"></dd></div>
+        <div><dt>Осмотр</dt><dd id="place-visit"></dd></div>
+      </dl>
+      <a class="btn" id="place-route" target="_blank" rel="noopener">Проложить маршрут ↗</a>
+      <div class="place-switch">
+        <a id="place-prev-link">‹ Предыдущее место</a>
+        <a id="place-next-link">Следующее место ›</a>
+      </div>
+    </main>
+  </div>
+
+  <script src="data/places.js"></script>
+  <script>
+    const params = new URLSearchParams(location.search);
+    const id = params.get("id");
+    const place = PLACES.find((p) => p.id === id) || PLACES[0];
+    const same = PLACES.filter((p) => p.section === place.section);
+    const idx = same.indexOf(place);
+    const section = SECTIONS.find((s) => s.id === place.section);
+
+    document.body.dataset.theme = place.section;
+    document.body.style.background = "var(--bg)";
+    document.title = place.name + " · Путеводитель по Калуге";
+
+    document.getElementById("place-section").textContent =
+      (section ? section.page + " · " : "") + (idx + 1) + " из " + same.length;
+    document.getElementById("place-name").textContent = place.name;
+
+    const img = document.getElementById("place-photo");
+    if (place.photo) { img.src = place.photo; img.alt = place.name; img.style.display = ""; }
+    else document.getElementById("place-hero").classList.add("no-photo");
+
+    document.getElementById("place-text-1").textContent = place.text;
+    document.getElementById("place-text-2").textContent = place.text2;
+    document.getElementById("place-address").textContent = place.address;
+    document.getElementById("place-hours").textContent = place.hours;
+    document.getElementById("place-visit").textContent = place.visit;
+    document.getElementById("place-route").href =
+      "https://yandex.ru/maps/?pt=" + place.lon + "," + place.lat + "&z=17";
+
+    const prev = same[(idx - 1 + same.length) % same.length];
+    const next = same[(idx + 1) % same.length];
+    document.getElementById("place-prev-link").href = "place.html?id=" + prev.id;
+    document.getElementById("place-prev-link").textContent = "‹ " + prev.name;
+    document.getElementById("place-next-link").href = "place.html?id=" + next.id;
+    document.getElementById("place-next-link").textContent = next.name + " ›";
+    document.getElementById("back-btn").href = section ? section.file : "index.html";
+  </script>
+  <script src="js/main.js"></script>
+</body>
+</html>

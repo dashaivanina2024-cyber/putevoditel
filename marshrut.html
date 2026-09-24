@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Путеводитель · Маршрут</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Lora:wght@400;500;600&family=Playfair+Display:wght@700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body data-theme="marshrut">
+  <header class="topbar fade">
+    <a class="brand" href="index.html"><span class="brand-logo"></span><span class="brand-name">Путеводитель</span></a>
+    <span class="spacer"></span>
+    <a class="btn" href="index.html">На обложку</a>
+  </header>
+
+  <main class="quiz-wrap">
+    <div id="quiz-questions">
+      <div class="slide-num fade fade-1">6 / 6 · Маршрут</div>
+      <div class="quiz-step fade fade-1" id="quiz-counter"></div>
+      <div class="quiz-q fade fade-2" id="quiz-q"></div>
+      <div class="quiz-opts fade fade-3" id="quiz-opts"></div>
+      <button class="btn quiz-next fade fade-4" id="quiz-next">Дальше →</button>
+    </div>
+
+    <div class="route-loading" id="route-loading" style="display:none">
+      <div>Генерируем ваш личный маршрут…</div>
+      <div class="spinner"></div>
+    </div>
+
+    <div class="route-result" id="route-result">
+      <div class="quiz-q" style="font-size:32px">Ваш маршрут</div>
+      <div class="route-map" id="route-map" style="height:340px"></div>
+      <p class="route-line-note">Мы пока выстраиваем маршрут по заготовленным правилам; скоро он станет по-настоящему персональным.</p>
+      <div class="route-list" id="route-list"></div>
+      <div class="soft-note" id="soft-note" style="display:none"></div>
+      <div style="margin-top:30px"><a class="btn" href="index.html">Начать заново</a></div>
+    </div>
+  </main>
+
+  <div class="nav-arrows left-only">
+    <a class="arrow-btn" data-nav="prev" href="oblast.html" title="Область">‹</a>
+  </div>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="data/places.js"></script>
+  <script src="js/quiz.js"></script>
+  <script src="js/main.js"></script>
+</body>
+</html>

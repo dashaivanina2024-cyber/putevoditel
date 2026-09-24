@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Путеводитель · История</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Lora:wght@400;500;600&family=Playfair+Display:wght@700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body data-theme="istoriya">
+  <header class="topbar fade">
+    <a class="brand" href="index.html"><span class="brand-logo"></span><span class="brand-name">Путеводитель</span></a>
+    <span class="spacer"></span>
+    <a class="btn" href="marshrut.html">Генерация маршрута <span class="chev">→</span></a>
+  </header>
+
+  <main class="slide">
+    <div class="slide-head">
+      <div class="slide-num fade fade-1">3 / 6 · История</div>
+      <h1 class="fade fade-2">История</h1>
+      <p class="slide-sub fade fade-3">Калуге больше шестисот лет. История здесь не в витринах, а в самих улицах.</p>
+    </div>
+    <div class="map-wrap fade fade-4">
+      <div id="map"></div>
+      <div class="card-overlay" id="card-overlay"></div>
+    </div>
+  </main>
+
+  <div class="place-card" id="place-card">
+    <button class="card-close" onclick="closeCard()">✕</button>
+    <div class="card-photo" id="card-photo"><img alt=""></div>
+    <div class="card-body">
+      <div class="card-tag" id="card-tag"></div>
+      <h2 id="card-name"></h2>
+      <p class="card-text" id="card-text"></p>
+      <div class="card-geo" id="card-geo"></div>
+      <div class="card-actions">
+        <a class="btn" id="card-route-btn" target="_blank" rel="noopener">Проложить маршрут ↗</a>
+        <a class="btn" id="card-link" style="background:transparent;border:1.5px solid currentColor;color:inherit">Страница места →</a>
+      </div>
+    </div>
+    <div class="card-count" id="card-count"></div>
+    <div class="card-nav">
+      <button id="card-prev" title="Предыдущее место">‹</button>
+      <button id="card-next" title="Следующее место">›</button>
+    </div>
+  </div>
+
+  <div class="lightbox" id="lightbox"><button class="card-close" onclick="this.parentElement.classList.remove('open')">✕</button><img src="" alt=""></div>
+
+  <div class="nav-arrows">
+    <a class="arrow-btn" data-nav="prev" href="kosmos.html" title="Космос">‹</a>
+    <a class="arrow-btn" data-nav="next" href="sovremennost.html" title="Современность">›</a>
+  </div>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="data/places.js"></script>
+  <script src="js/card.js"></script>
+  <script>renderSectionMap("istoriya");</script>
+  <script src="js/main.js"></script>
+</body>
+</html>
