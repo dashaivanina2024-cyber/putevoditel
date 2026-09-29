@@ -5,7 +5,7 @@ import { resolve } from "node:path";
 const staticDirs = ["css", "js", "data", "assets", "skills"];
 
 export default defineConfig({
-  base: "/putevod/",
+  base: "/putevoditel/",
   build: {
     rollupOptions: {
       input: {
