@@ -2,10 +2,7 @@
 function renderSectionMap(sectionId) {
   const places = PLACES.filter((p) => p.section === sectionId);
   const map = L.map("map", { scrollWheelZoom: false, zoomSnap: 0.25 });
-  L.tileLayer("https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png", {
-    attribution: "&copy; OpenStreetMap, &copy; CARTO",
-    subdomains: "abcd", maxZoom: 19
-  }).addTo(map);
+  makeTiles(map);
 
   const bounds = [];
   places.forEach((p) => {
@@ -25,6 +22,8 @@ function renderSectionMap(sectionId) {
   const isWide = sectionId === "oblast";
   map.fitBounds(bounds, { padding: isWide ? [70, 70] : [150, 150], maxZoom: 14 });
 
+  addPoiControls(map);
+
   const overlay = document.getElementById("card-overlay");
   overlay.addEventListener("click", (e) => { if (e.target === overlay) closeCard(); });
 }
@@ -35,6 +34,7 @@ function openCard(places, placeId, map) {
   const idx = places.findIndex((p) => p.id === placeId);
   const p = places[idx];
 
+  AudioGuide.stop();
   map.flyTo([p.lat, p.lon], Math.max(map.getZoom(), 12), { duration: 0.8, padding: [120, 120] });
 
   const photo = document.getElementById("card-photo");
@@ -51,6 +51,15 @@ function openCard(places, placeId, map) {
     "<div>Адрес: <b>" + p.address + "</b></div>" +
     "<div>Время: " + p.hours + "</div>" +
     "<div>Осмотр: " + p.visit + "</div>";
+
+  const oldAudio = document.getElementById("card-audio-btn");
+  if (oldAudio) oldAudio.remove();
+  const audioBtn = AudioGuideButton(p, "▶ Аудиогид");
+  audioBtn.id = "card-audio-btn";
+  audioBtn.style.fontFamily = '"Playfair Display", Georgia, serif';
+  const actionsBox = document.querySelector("#place-card .card-actions");
+  if (actionsBox) actionsBox.prepend(audioBtn);
+
   document.getElementById("card-route-btn").href =
     "https://yandex.ru/maps/?pt=" + p.lon + "," + p.lat + "&z=17";
   document.getElementById("card-link").href = "place.html?id=" + p.id;
@@ -72,6 +81,7 @@ function openCard(places, placeId, map) {
 }
 
 function closeCard() {
+  AudioGuide.stop();
   document.getElementById("card-overlay").classList.remove("open");
   document.getElementById("place-card").classList.remove("open");
   document.getElementById("lightbox").classList.remove("open");

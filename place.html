@@ -20,6 +20,7 @@
     <main class="place-main fade">
       <div class="card-tag" id="place-section"></div>
       <h1 id="place-name"></h1>
+      <div id="place-audio"></div>
       <p id="place-text-1"></p>
       <p id="place-text-2"></p>
       <dl class="facts" id="place-facts">
@@ -36,6 +37,7 @@
   </div>
 
   <script src="data/places.js"></script>
+  <script src="js/audio.js"></script>
   <script>
     const params = new URLSearchParams(location.search);
     const id = params.get("id");
@@ -51,6 +53,7 @@
     document.getElementById("place-section").textContent =
       (section ? section.page + " · " : "") + (idx + 1) + " из " + same.length;
     document.getElementById("place-name").textContent = place.name;
+    document.getElementById("place-audio").appendChild(AudioGuideButton(place));
 
     const img = document.getElementById("place-photo");
     if (place.photo) { img.src = place.photo; img.alt = place.name; img.style.display = ""; }

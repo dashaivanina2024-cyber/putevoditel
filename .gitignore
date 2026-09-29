@@ -1,2 +1,5 @@
 .DS_Store
 skills/
+node_modules/
+dist/
+.opencode/
