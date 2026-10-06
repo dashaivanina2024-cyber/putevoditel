@@ -13,6 +13,15 @@ const QUIZ_ROUTE = [
 const routeById = (id) => ROUTES.find((r) => r.id === id);
 const placeById = (id) => PLACES.find((p) => p.id === id);
 
+/* 1 точка / 2 точки / 5 точек */
+function pluralRu(n, one, few, many) {
+  const m = Math.abs(n) % 100, d = m % 10;
+  if (m > 10 && m < 20) return many;
+  if (d === 1) return one;
+  if (d > 1 && d < 5) return few;
+  return many;
+}
+
 /* 4 карточки готовых маршрутов */
 function buildRouteCards() {
   const grid = document.getElementById("routes-grid");
@@ -26,7 +35,7 @@ function buildRouteCards() {
       '<h3>' + r.title + '</h3>' +
       '<span class="route-tag">' + r.tag + '</span>' +
       '<p>' + r.desc + '</p>' +
-      '<div class="route-features"><span>' + stops.length + ' точки</span><span>Аудиогид ▶</span></div>' +
+      '<div class="route-features"><span>' + stops.length + ' ' + pluralRu(stops.length, "точка", "точки", "точек") + '</span><span>Аудиогид ▶</span></div>' +
       '<button class="btn route-open">Смотреть маршрут →</button>';
     card.querySelector(".route-open").onclick = () => openRoute(r.id);
     grid.appendChild(card);
@@ -53,10 +62,46 @@ function openRoute(routeId) {
   mapDiv.id = "route-map-open";
   view.appendChild(mapDiv);
 
+  const meta = document.createElement("div");
+  meta.className = "route-line-note";
+  meta.textContent = "Строим маршрут по улицам…";
+  view.appendChild(meta);
+
   const whole = { audio: stops.map((p, i) => (i + 1) + ". " + p.name + ". " + (p.audio || p.short)).join(" ") };
   const playAll = AudioGuideButton(whole, "▶ Слушать весь маршрут");
   playAll.style.margin = "10px 0 16px";
   view.appendChild(playAll);
+
+  /* Кнопка «Проложить весь маршрут»: посетитель → остановки → конец, на нашей карте */
+  const routeAll = document.createElement("button");
+  routeAll.className = "btn route-all-btn";
+  routeAll.textContent = "Проложить весь маршрут от меня ✓";
+  routeAll.onclick = () => {
+    if (routeAll.dataset.busy) return;
+    routeAll.dataset.busy = "1";
+    const old = routeAll.textContent;
+    routeAll.textContent = "Строим маршрут…";
+    const profile = stops.some((s) => s.section === "oblast") ? "driving" : "foot";
+    Routing.userLocation()
+      .then((from) => {
+        const seq = [{ lat: from[0], lon: from[1], name: "Вы здесь" }].concat(stops);
+        const liveMap = window._routeMap;
+        if (!liveMap) return;
+        return Routing.drawStreet(liveMap, seq, { color: "#e8442e", weight: 4.5 }, profile).then((res) => {
+          const km = (res.distance / 1000).toFixed(1).replace(".", ",");
+          const min = Math.max(1, Math.round(res.duration / 60));
+          meta.textContent = "Ваш маршрут: от вашего положения через все " + pluralRu(stops.length, "точку", "точки", "точек") + " (" + stops.length + ") — " + km + " км, около " + min + " мин.";
+          routeAll.textContent = "Маршрут проложен ✓";
+          setTimeout(() => { routeAll.textContent = old; }, 2500);
+        }).catch(() => {
+          routeAll.textContent = "Не вышло — открываю Яндекс.Карты ↗";
+          window.open(Routing.yandexHref(seq, profile), "_blank", "noopener");
+          routeAll.textContent = old;
+        });
+      })
+      .finally(() => { delete routeAll.dataset.busy; });
+  };
+  view.appendChild(routeAll);
 
   const ul = document.createElement("div");
   ul.className = "route-list";
@@ -96,29 +141,47 @@ function openRoute(routeId) {
   back.textContent = "← Свернуть";
   back.onclick = () => {
     AudioGuide.stop();
+    const staleEl = document.getElementById("route-map-open");
+    if (staleEl) staleEl.dataset.stale = "1";
     view.classList.remove("show");
     view.innerHTML = "";
   };
   view.appendChild(back);
 
-  renderRouteMap("route-map-open", stops);
+  renderRouteMap("route-map-open", stops, meta);
   view.scrollIntoView({ behavior: "smooth", block: "start" });
 }
 
-/* Карта с пронумерованными пинами и пунктирной линией */
-function renderRouteMap(elId, stops) {
+  /* Карта с пронумерованными пинами и уличным маршрутом через все точки */
+function renderRouteMap(elId, stops, meta) {
   if (!stops.length) return;
+  meta = meta || { set textContent(v) { document.querySelector(".route-line-note") !== null && (document.querySelector(".route-line-note").textContent = v); } };
   const map = L.map(elId, { scrollWheelZoom: false });
+  if (elId === "route-map-open") window._routeMap = map;
   makeTiles(map);
 
   const pts = stops.map((p) => [p.lat, p.lon]);
-  L.polyline(pts, { color: "#f6f3ec", weight: 2.5, dashArray: "7 7", opacity: .8 }).addTo(map);
+  L.polyline(pts, { color: "#f6f3ec", weight: 2.5, dashArray: "7 7", opacity: .45 }).addTo(map);
   pts.forEach((pt, i) => {
     L.marker(pt, {
-      icon: L.divIcon({ className: "", html: '<div class="pin-ico num"><span>' + (i + 1) + "</span></div>", iconSize: [28, 40], iconAnchor: [14, 40] })
-    }).addTo(map).bindTooltip((i + 1) + ". " + stops[i].name, { direction: "top", offset: [0, -34] });
+      icon: L.divIcon({ className: "", html: '<div class="pin-ico num"><span>' + (i + 1) + "</span></div>", iconSize: [30, 30], iconAnchor: [15, 15] })
+    }).addTo(map).bindTooltip((i + 1) + ". " + stops[i].name, { direction: "top", offset: [0, -18] });
   });
   map.fitBounds(L.latLngBounds(pts).pad(0.35));
+
+  /* Уличный маршрут через все точки (OSRM) поверх мгновенного пунктира */
+  const farProfile = stops.some((s) => s.section === "oblast") ? "driving" : "foot";
+  const el = document.getElementById(elId);
+  delete el.dataset.stale;
+  Routing.streetRoute(stops, farProfile)
+    .then((r) => {
+      if (el.dataset.stale) return; /* карту пересоздали (новый маршрут) */
+      L.polyline(r.line, { color: "#e8442e", weight: 4, opacity: .9, lineCap: "round" }).addTo(map);
+      const km = (r.distance / 1000).toFixed(1).replace(".", ",");
+      const mode = farProfile === "driving" ? "на машине" : "пешком";
+      meta.textContent = "Уличный маршрут через все точки: " + km + " км, около " + Math.max(1, Math.round(r.duration / 60)) + " мин " + mode + ".";
+    })
+    .catch(() => { el.dataset.stale || (meta.textContent = "Онлайн-роутер недоступен — пунктир по прямым линиям."); });
   addPoiControls(map);
 }
 

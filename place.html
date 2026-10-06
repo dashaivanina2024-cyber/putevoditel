@@ -29,6 +29,8 @@
         <div><dt>Осмотр</dt><dd id="place-visit"></dd></div>
       </dl>
       <a class="btn" id="place-route" target="_blank" rel="noopener">Проложить маршрут ↗</a>
+      <div class="route-map place-route-map" id="place-route-map" style="display:none"></div>
+      <div class="route-line-note" id="place-route-note" style="display:none"></div>
       <div class="place-switch">
         <a id="place-prev-link">‹ Предыдущее место</a>
         <a id="place-next-link">Следующее место ›</a>
@@ -36,7 +38,10 @@
     </main>
   </div>
 
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script src="data/places.js"></script>
+  <script src="js/poi.js"></script>
+  <script src="js/routing.js"></script>
   <script src="js/audio.js"></script>
   <script>
     const params = new URLSearchParams(location.search);
@@ -65,7 +70,45 @@
     document.getElementById("place-hours").textContent = place.hours;
     document.getElementById("place-visit").textContent = place.visit;
     document.getElementById("place-route").href =
-      "https://yandex.ru/maps/?pt=" + place.lon + "," + place.lat + "&z=17";
+      "https://yandex.ru/maps/?rtext=" + place.lon + "," + place.lat + "&rtt=mt";
+
+    /* «Проложить маршрут»: строим уличный маршрут «вы — место» и показываем карту здесь */
+    const routeBtn = document.getElementById("place-route");
+    routeBtn.addEventListener("click", (e) => {
+      if (routeBtn.dataset.busy) return;
+      e.preventDefault();
+      routeBtn.dataset.busy = "1";
+      const old = routeBtn.textContent;
+      routeBtn.textContent = "Строим маршрут…";
+      const mapDiv = document.getElementById("place-route-map");
+      const note = document.getElementById("place-route-note");
+      Routing.userLocation()
+        .then((from) => {
+          const profile = Routing.distKm({ lat: from[0], lon: from[1] }, place) > 25 ? "driving" : "foot";
+          if (window._routeMap) { window._routeMap.remove(); window._routeMap = null; }
+          mapDiv.style.display = "";
+          mapDiv.innerHTML = "";
+          const map = L.map(mapDiv, { scrollWheelZoom: false });
+          window._routeMap = map; /* для мобилки: refresh после layout */
+          makeTiles(map);
+          return Routing.drawStreet(map, [{ lat: from[0], lon: from[1] }, place], null, profile);
+        })
+        .then((res) => {
+          const km = (res.distance / 1000).toFixed(1).replace(".", ",");
+          const min = Math.max(1, Math.round(res.duration / 60));
+          note.textContent = "От вас до «" + place.name + "»: " + km + " км, около " + min + " мин. Оранжевый пунктир — уличный маршрут от вашего положения.";
+          note.style.display = "";
+          routeBtn.textContent = "Маршрут на карте ✓";
+          setTimeout(() => { routeBtn.textContent = "Обновить маршрут ↗"; }, 2200);
+        })
+        .catch((err) => {
+          note.textContent = "Не получилось построить маршрут (" + (err && err.message ? err.message : "сеть") + "). Открываю Яндекс.Карты ↗";
+          note.style.display = "";
+          window.open(routeBtn.href, "_blank", "noopener");
+          setTimeout(() => { routeBtn.textContent = old; }, 1800);
+        })
+        .finally(() => { delete routeBtn.dataset.busy; });
+    });
 
     const prev = same[(idx - 1 + same.length) % same.length];
     const next = same[(idx + 1) % same.length];

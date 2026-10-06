@@ -22,8 +22,8 @@ body[data-theme="sovremennost"] { --bg:#cfe2f3; --ink:#0f2231; --btn-bg:#0f2231;
 body[data-theme="oblast"]       { --bg:#bcd9c2; --ink:#17301f; --btn-bg:#17301f; --btn-ink:#bcd9c2; --pin:#17301f; }
 body[data-theme="marshrut"]     { --bg:#17140e; --ink:#f6f3ec; --btn-bg:#f6f3ec; --btn-ink:#17140e; --pin:#f6f3ec; }
 
-body[data-theme="kosmos"] .leaflet-tile-pane { filter: grayscale(1) brightness(.78) contrast(.95); }
-body[data-theme="kosmos"] .leaflet-container { background: #0d1b3d; }
+/* Карта — единая на всех слайдах: стандартная светлая OpenStreetMap */
+.leaflet-container { background: #e9e6df; }
 
 body { background: var(--bg); color: var(--ink); }
 a { color: inherit; }
@@ -44,6 +44,8 @@ button { font: inherit; color: inherit; background: none; border: none; cursor: 
   position: fixed; top: 0; left: 0; right: 0; z-index: 1200;
   display: flex; align-items: center; gap: 14px;
   padding: 14px 22px;
+  background: var(--bg);
+  box-shadow: 0 1px 0 rgba(0,0,0,.1);
 }
 .brand { display: flex; align-items: center; gap: 12px; text-decoration: none; }
 .brand-logo { width: 34px; height: 34px; background: var(--ink); opacity: .9; }
@@ -82,21 +84,16 @@ button { font: inherit; color: inherit; background: none; border: none; cursor: 
 .arrow-btn:hover { transform: scale(1.07); }
 .arrow-btn.back { margin-right: auto; }
 
-/* Пины Leaflet */
+/* Пины Leaflet: плоский кружок, лежит на точке места, без поворотов и теней */
 .pin-ico {
-  width: 28px; height: 40px; position: relative; pointer-events: none;
-}
-.pin-ico::before {
-  content: ""; position: absolute; inset: 0;
+  width: 30px; height: 30px; border-radius: 50%; position: relative; pointer-events: none;
   background: var(--pin, #17140e);
-  border-radius: 50% 50% 50% 0; transform: rotate(-45deg);
-  box-shadow: 0 2px 6px rgba(0,0,0,.35);
+  border: 1px solid rgba(0,0,0,.18);
+  display: flex; align-items: center; justify-content: center;
 }
-.pin-ico.dark::before { --pin-c: #fff; }
 .pin-ico::after {
-  content: ""; position: absolute; left: 50%; top: 11px; width: 10px; height: 10px;
-  margin-left: -5px; border-radius: 50%;
-  background: rgba(255,255,255,.9);
+  content: ""; width: 9px; height: 9px; border-radius: 50%;
+  background: var(--bg, #fff);
 }
 .pin-ico.dark::after { background: #17140e; }
 
@@ -119,7 +116,7 @@ button { font: inherit; color: inherit; background: none; border: none; cursor: 
   display: flex; align-items: center; justify-content: center;
   color: #f6f3ec; font-size: 13px; letter-spacing: .08em; text-transform: uppercase; opacity: .7;
 }
-.card-body { padding: 22px 26px 26px; flex: 1 1 auto; overflow-y: auto; min-height: 0; }
+.card-body { padding: 22px 26px 72px; flex: 1 1 auto; overflow-y: auto; min-height: 0; overflow-wrap: break-word; }
 .card-tag { font-size: 12px; letter-spacing: .1em; text-transform: uppercase; opacity: .6; }
 .card-body h2 { font-size: 27px; margin: 6px 0 10px; }
 .card-text { line-height: 1.55; font-size: 15px; }
@@ -138,7 +135,7 @@ button { font: inherit; color: inherit; background: none; border: none; cursor: 
   background: #17140e; color: #f6f3ec; font-size: 17px;
   display: flex; align-items: center; justify-content: center;
 }
-.card-count { position: absolute; bottom: 30px; left: 26px; font-size: 12.5px; opacity: .6; }
+.card-count { position: absolute; bottom: 30px; left: 26px; max-width: 60%; font-size: 12.5px; opacity: .6; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
 /* Лайтбокс */
 .lightbox { position: fixed; inset: 0; z-index: 3000; background: rgba(10,9,7,.95); display: none; align-items: center; justify-content: center; }
@@ -185,7 +182,7 @@ button { font: inherit; color: inherit; background: none; border: none; cursor: 
 .route-result { display: none; }
 .route-result.show { display: block; animation: fadeUp .4s ease both; }
 .route-map { margin: 8px 0 22px; position: relative; border-radius: var(--card-radius); overflow: hidden; z-index: 1; }
-.route-line-note { font-size: 14px; opacity: .7; margin-top: -10px; margin-bottom: 22px; }
+.route-line-note { font-size: 14px; opacity: .7; margin: 8px 0 18px; line-height: 1.55; }
 .route-list { display: flex; flex-direction: column; gap: 12px; }
 .route-item {
   display: flex; gap: 16px; align-items: baseline; text-decoration: none;
@@ -219,7 +216,6 @@ button { font: inherit; color: inherit; background: none; border: none; cursor: 
 .route-view { display: none; margin-top: 26px; }
 .route-view.show { display: block; animation: fadeUp .4s ease both; }
 .route-view .route-map { height: clamp(280px, 45vh, 420px); }
-.route-view .route-map.leaflet-container { background: #e9e6df; }
 .route-actions { display: flex; gap: 8px; align-items: center; margin-left: auto; }
 .route-actions .audio-btn { padding: 6px 14px; font-size: 13px; border-radius: 999px; }
 .route-link { font-size: 13.5px; text-decoration: none; border-bottom: 1px dashed currentColor; opacity: .8; white-space: nowrap; }
@@ -228,14 +224,16 @@ button { font: inherit; color: inherit; background: none; border: none; cursor: 
 
 .quiz-block { margin-top: 44px; border-top: 1px solid rgba(255,255,255,.16); padding-top: 34px; }
 
-/* Нумерованный пин маршрута */
-.pin-ico.num::before { background: var(--pin); }
-.pin-ico.num span {
-  position: absolute; left: 50%; top: 13px; transform: translateX(-50%);
-  width: 12px; height: 12px; margin-left: -6px; border-radius: 50%;
-  color: var(--pin); font: 700 9px/12px "Playfair Display", serif; text-align: center; z-index: 2;
-}
+/* Проложенный маршрут: кнопки и примечания */
+.route-all-btn { margin: 4px 0 20px; align-self: flex-start; }
+.route-line-note { font-size: 14px; opacity: .8; margin: 4px 0 18px; line-height: 1.55; }
+.place-route-map { height: clamp(240px, 40vh, 360px); margin-top: 4px; }
+
+/* Нумерованный пин маршрута: цифра прямо по центру кружка */
 .pin-ico.num::after { display: none; }
+.pin-ico.num span {
+  color: var(--bg, #fff); font: 700 12px/1 "Playfair Display", serif;
+}
 
 /* Аудиокнопка */
 .audio-btn.playing { background: var(--btn-bg); color: var(--btn-ink); opacity: 1; }
@@ -245,18 +243,19 @@ button { font: inherit; color: inherit; background: none; border: none; cursor: 
 }
 @keyframes pulse { 0%,100% { transform: scale(1); opacity: .9 } 50% { transform: scale(1.7); opacity: .3 } }
 
-/* POI переключатель на картах */
+/* POI переключатель на картах — единый светлый стиль на всех темах */
 .poi-box {
-  background: var(--bg); border-radius: 10px; padding: 8px 10px 9px;
-  box-shadow: 0 4px 18px rgba(0,0,0,.28); font: 13px "Lora", serif; color: var(--ink);
+  background: rgba(246,243,236,.97); border-radius: 10px; padding: 8px 10px 9px;
+  box-shadow: 0 4px 18px rgba(0,0,0,.28); font: 13px "Lora", serif; color: #17140e;
 }
 .poi-box-title { font-size: 10.5px; letter-spacing: .1em; text-transform: uppercase; opacity: .6; margin-bottom: 4px; }
 .poi-chip { display: flex; align-items: center; gap: 6px; padding: 3px 2px; cursor: pointer; white-space: nowrap; }
 .poi-chip input { accent-color: var(--poi, #17140e); margin: 0; }
 .poi-pin {
   width: 30px; height: 30px; border-radius: 50%; background: var(--poi, #17140e);
+  border: 1px solid rgba(0,0,0,.15);
   display: flex; align-items: center; justify-content: center;
-  box-shadow: 0 2px 7px rgba(0,0,0,.35); font-size: 15px;
+  font-size: 15px;
 }
 
 /* Мобилка */
@@ -353,8 +352,8 @@ button { font: inherit; color: inherit; background: none; border: none; cursor: 
   .route-item .n { font-size: 19px; }
   .route-item .t { font-size: 15px; }
   .route-item small { font-size: 12.5px; }
-  .route-actions { margin-left: 38px; width: 100%; }
-  .route-actions .audio-btn { width: 40px; height: 40px; padding: 0; border-radius: 999px; font-size: 14px; flex: 0 0 auto; }
+  .route-actions { margin-left: 38px; width: auto; gap: 14px; align-items: center; }
+  .route-actions .audio-btn { width: 36px; height: 36px; min-width: 36px; padding: 0; border-radius: 999px; font-size: 15px; line-height: 1; display: flex; align-items: center; justify-content: center; flex: 0 0 auto; }
   .route-link { margin-left: auto; white-space: normal; }
   .soft-note { padding: 13px 15px; font-size: 13.5px; }
 

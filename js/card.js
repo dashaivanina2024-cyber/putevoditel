@@ -2,20 +2,22 @@
 function renderSectionMap(sectionId) {
   const places = PLACES.filter((p) => p.section === sectionId);
   const map = L.map("map", { scrollWheelZoom: false, zoomSnap: 0.25 });
+  window._sectionMaps = window._sectionMaps || [];
+  window._sectionMaps.push(map);
   makeTiles(map);
 
   const bounds = [];
   places.forEach((p) => {
     bounds.push([p.lat, p.lon]);
     L.marker([p.lat, p.lon], {
-      icon: L.divIcon({ className: "", html: '<div class="pin-ico"></div>', iconSize: [28, 40], iconAnchor: [14, 40] }),
+      icon: L.divIcon({ className: "", html: '<div class="pin-ico"></div>', iconSize: [30, 30], iconAnchor: [15, 15] }),
       title: p.name
     }).addTo(map).on("click", () => openCard(places, p.id, map));
   });
 
   if (!bounds.length) {
     // обложка: карта Калуги без пинов
-    map.setView([54.5078, 36.0500], 12);
+    map.setView([54.5078, 36.2500], 13);
     return;
   }
 
@@ -60,8 +62,8 @@ function openCard(places, placeId, map) {
   const actionsBox = document.querySelector("#place-card .card-actions");
   if (actionsBox) actionsBox.prepend(audioBtn);
 
-  document.getElementById("card-route-btn").href =
-    "https://yandex.ru/maps/?pt=" + p.lon + "," + p.lat + "&z=17";
+  document.getElementById("card-route-btn").href = "https://yandex.ru/maps/?rtext=" + p.lon + "," + p.lat + "&rtt=mt";
+  setCardRouteHref(places, p.id);
   document.getElementById("card-link").href = "place.html?id=" + p.id;
   document.getElementById("card-count").textContent =
     (idx + 1) + " из " + places.length + " · " + p.name;
@@ -85,4 +87,39 @@ function closeCard() {
   document.getElementById("card-overlay").classList.remove("open");
   document.getElementById("place-card").classList.remove("open");
   document.getElementById("lightbox").classList.remove("open");
+}
+
+/* Кнопка «Проложить маршрут»: строим уличный маршрут «вы — место» на нашей карте,
+   ссылка на Яндекс остаётся запасным вариантом (задана как href). */
+function setCardRouteHref(places, placeId) {
+  const btn = document.getElementById("card-route-btn");
+  const p = places.find((x) => x.id === placeId);
+  const map = window._sectionMaps && window._sectionMaps[0];
+  if (!btn || !p || !map) return;
+  btn.onclick = (e) => {
+    e.preventDefault();
+    if (btn.dataset.busy) return;
+    btn.dataset.busy = "1";
+    const old = btn.textContent;
+    btn.textContent = "Строим маршрут…";
+    Routing.userLocation()
+      .then((from) => {
+        const profile = Routing.distKm({ lat: from[0], lon: from[1] }, p) > 25 ? "driving" : "foot";
+        return Routing.drawStreet(map, [
+          { lat: from[0], lon: from[1] }, p
+        ], { color: "#e8442e" }, profile);
+      })
+      .then(() => {
+        delete btn.dataset.busy;
+        btn.textContent = old;
+        window._lastRouteMap = map;
+        map.flyTo([p.lat, p.lon], Math.max(map.getZoom(), 13));
+        closeCard();
+      })
+      .catch(() => {
+        delete btn.dataset.busy;
+        btn.textContent = old;
+        window.open(btn.href, "_blank", "noopener");
+      });
+  };
 }
